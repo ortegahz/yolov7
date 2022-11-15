@@ -1,0 +1,20 @@
+# inference
+python detect.py --weights /home/manu/tmp/yolov7.pt --conf 0.25 --img-size 640 --source inference/images/horses.jpg
+
+# export
+python export.py --weights /home/manu/tmp/yolov7.pt --grid --end2end --simplify --topk-all 100 --iou-thres 0.65 --conf-thres 0.35 --img-size 640 640 --max-wh 640
+python export.py --weights /home/manu/tmp/yolov7-tiny.pt --grid --include-nms --simplify
+
+# test
+python test.py --data data/coco.yaml --img 640 --batch 32 --conf 0.001 --iou 0.65 --device 0 --weights /home/manu/tmp/yolov7.pt --name yolov7_640_val
+python test.py --data data/coco.yaml --img 640 --batch 32 --conf 0.001 --iou 0.65 --device 0 --weights /home/manu/tmp/yolov711/weights/best.pt --name yolov7_640_val
+
+# train
+python train.py --workers 8 --device 0 --batch-size 32 --data data/coco.yaml --img 640 640 --cfg cfg/training/yolov7.yaml --weights '' --name yolov7 --hyp data/hyp.scratch.p5.yaml
+
+screen python -m torch.distributed.launch --nproc_per_node 8 --master_port 9527 train.py --workers 8 --device 0,1,2,3,4,5,6,7 --sync-bn --batch-size 64 --data data/coco.yaml --img 640 640 --cfg cfg/training/yolov7.yaml --weights '' --name yolov7 --hyp data/hyp.scratch.p5.yaml
+
+screen python train.py --workers 1 --device 0 --batch-size 8 --data data/coco.yaml --img 640 640 --cfg cfg/training/yolov7.yaml --weights '' --name yolov7 --hyp data/hyp.scratch.p5.yaml
+
+# log
+tensorboard --logdir=tensorboard --port=6006 --host=0.0.0.0
